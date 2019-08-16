@@ -8,4 +8,5 @@ This script sets up Centos VPS with initially required secure configuration and 
 
 ## Initialization
 Run as root!
+
 `bash <(curl -s https://raw.githubusercontent.com/richardevcom/centos7-initial-setup/master/centos7_initial_setup)`
