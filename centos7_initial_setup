@@ -1,0 +1,142 @@
+#!/bin/bash
+# Centos 7 Initial Setup
+main(){
+    clear
+    # BANNER
+    printf "\n\n\n"
+    printf "╔═╗┌─┐┌┐┌┌┬┐┌─┐┌─┐\n"
+    printf "║  ├┤ │││ │ │ │└─┐\n"
+    printf "╚═╝└─┘┘└┘ ┴ └─┘└─┘\n"
+    printf "╦┌┐┌┬┌┬┐┬┌─┐┬  \n"
+    printf "║││││ │ │├─┤│  \n"
+    printf "╩┘└┘┴ ┴ ┴┴ ┴┴─┘\n"
+    printf "╔═╗┌─┐┌┬┐┬ ┬┌─┐\n"
+    printf "╚═╗├┤  │ │ │├─┘\n"
+    printf "╚═╝└─┘ ┴ └─┘┴"
+    echo
+    printf "By richardev"
+    printf "\n\n\n"
+    
+    # Check if user is ROOT
+    if [ "$(id -u)" != "0" ]; then
+       printf '\nError: This script must be run as root!\nTry "sudo -i"\n\nExiting...\n' 1>&2
+       exit 1
+    fi
+    
+    # Update time
+    printf "Updating system...\n"
+    yum -y update
+    echo
+    printf "System updated!\n"
+    printf "\n\n\n"
+    
+    # Install packages
+    printf "Installing packages...\n"
+    yum -y install nano
+    echo
+    printf "Packages installed!\n"
+    printf "\n\n\n"
+    
+    #Create super admin
+    create_sudo
+    
+    #Secure SSH
+    secure_ssh
+    
+    #Change hostname
+    set_hostname
+}
+
+# Adding user
+create_sudo(){
+    read -p "Add new super admin?`echo $'\n> '`Press [y] key to continue and any other key to skip this step:" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        read -e -p "Enter username: " sudo_username
+        adduser $sudo_username
+        if id "$sudo_username" >/dev/null 2>&1; then
+            read -p "Create new? Press [y] to create new or any other key to skip: " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]
+            then
+                create_sudo
+            fi
+        else
+            read -p "Enter password: " -s sudo_password
+            echo $sudo_password | passwd --stdin $sudo_username
+            echo
+            usermod -aG wheel $sudo_username
+            printf "User $sudo_username created & added to super admins group"
+
+        fi
+    fi
+    printf "\n\n\n"
+}
+
+
+# Securing SSH
+secure_ssh(){
+    read -p "Secure ssh?`echo $'\n> '`Press [y] key to continue and any other key to skip this step:" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        printf "Securing SSH...\n"
+        # SSH Port
+        read -e -p "Set SSH port: " -i 22 ssh_port
+        sed "s/#\?\(Port\s*\).*$/\1 $ssh_port/" /etc/ssh/sshd_config > temp.txt 
+        mv -f temp.txt /etc/ssh/sshd_config
+        printf "Port changed to: $ssh_port\n\n"
+        
+        # PermitRootLogin
+        read -p "Permit root login?`echo $'\n> '`[y] to allow and any other key to deny:" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]
+        then
+            ssh_permit_root="yes"
+        else
+            ssh_permit_root="no"
+        fi
+        sed "s/#\?\(PermitRootLogin\s*\).*$/\1 $ssh_permit_root/" /etc/ssh/sshd_config > temp.txt 
+        mv -f temp.txt /etc/ssh/sshd_config
+        printf "'PermitRootLogin' changed to '$ssh_permit_root'\n\n"
+        
+        # Use DNS
+        read -p "Use DNS?`echo $'\n> '`[y] to allow and any other key to deny:" -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]
+        then
+            ssh_use_dns="yes"
+        else
+            ssh_use_dns="no"
+        fi
+        sed "s/#\?\(UseDNS\s*\).*$/\1 $ssh_use_dns/" /etc/ssh/sshd_config > temp.txt 
+        mv -f temp.txt /etc/ssh/sshd_config
+        printf "'UseDNS' changed to '$ssh_use_dns'\n\n"
+        
+        #Restart SSH
+        printf "SSH secured!\n"
+        printf "Restarting SSH to apply changes...\n"
+        systemctl restart sshd
+        echo
+        printf "SSH restarted!"
+    fi
+    printf "\n\n\n"
+}
+
+# Set hostname
+set_hostname(){
+    read -p "Change hostname?`echo $'\n> '`Press [y] key to set and any other key to skip this step:" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        read -p "Enter hostname: " change_hostname
+        echo
+        hostnamectl set-hostname $change_hostname
+        hostnamectl
+        echo
+        echo
+        printf "Hostname changed to $change_hostname!\n"
+    fi
+}
+main
