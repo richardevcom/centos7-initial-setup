@@ -54,8 +54,7 @@ create_sudo(){
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
         read -e -p "Enter username: " sudo_username
-        adduser $sudo_username
-        if [ -z "$(getent passwd jsmith)" ]; then
+        if id "$1" >/dev/null 2>&1; then
         then
             read -p "Create new? Press [y] to create new or any other key to skip: " -n 1 -r
             echo
@@ -64,6 +63,7 @@ create_sudo(){
                 create_sudo
             fi
         else
+            adduser $sudo_username
             read -p "Enter password: " -s sudo_password
             echo $sudo_password | passwd --stdin $sudo_username
             echo
