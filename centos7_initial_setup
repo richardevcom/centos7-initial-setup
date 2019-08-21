@@ -86,7 +86,10 @@ secure_ssh(){
         read -e -p "Set SSH port: " -i 22 ssh_port
         sed "s/#\?\(Port\s*\).*$/\1 $ssh_port/" /etc/ssh/sshd_config > temp.txt 
         mv -f temp.txt /etc/ssh/sshd_config
-        printf "Port changed to: $ssh_port\n\n"
+        printf "Port changed to: $ssh_port\n"
+        iptables -A INPUT -p tcp --dport $ssh_port -j ACCEPT
+        service iptables restart
+        printf "Port added to firewall!\n"
         
         # PermitRootLogin
         read -p "Permit root login?`echo $'\n> '`[y] to allow and any other key to deny:" -n 1 -r
