@@ -54,7 +54,8 @@ create_sudo(){
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
         read -e -p "Enter username: " sudo_username
-        if id "$sudo_username" >/dev/null 2>&1; then
+        if [id "$sudo_username" >/dev/null 2>&1]
+        then
             read -p "Create new? Press [y] to create new or any other key to skip: " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]
