@@ -55,7 +55,7 @@ create_sudo(){
     then
         read -e -p "Enter username: " sudo_username
         adduser $sudo_username
-        if id "$sudo_username" >/dev/null 2>&1; then
+        if [ -z $(getent passwd $sudo_username) ] then
             read -p "Create new? Press [y] to create new or any other key to skip: " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]
@@ -68,7 +68,6 @@ create_sudo(){
             echo
             usermod -aG wheel $sudo_username
             printf "User $sudo_username created & added to super admins group"
-
         fi
     fi
     printf "\n\n\n"
