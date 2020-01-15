@@ -14,7 +14,8 @@ main(){
     printf "╚═╗├┤  │ │ │├─┘\n"
     printf "╚═╝└─┘ ┴ └─┘┴"
     echo
-    printf "By richardev"
+    printf "By richardev\n"
+    printf "!!! Warning, you must be super admin, to run this without issues !!!"
     printf "\n\n\n"
     
     # Check if user is ROOT
@@ -33,6 +34,8 @@ main(){
     # Install packages
     printf "Installing packages...\n"
     yum -y install nano
+    # Epel repo
+    yum -y install epel-release
     echo
     printf "Packages installed!\n"
     printf "\n\n\n"
